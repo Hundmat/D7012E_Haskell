@@ -5,10 +5,11 @@ printSubLists xs = do
   where
     printRows [] = return ()
     printRows ((i, j, sumVal, sub):xs) = do
-        putStrLn (pad 5 (show sumVal) ++ " " ++ pad 3 (show i) ++ " " ++ pad 3 (show j) ++ " " ++ show sub)
+        putStrLn (show sumVal ++ "   " ++ show i ++ "   " ++ show j ++ "   " ++ show sub)
         printRows xs
     
-    pad n str = take n (str ++ repeat ' ')
+    
+    
 
 
 
@@ -36,6 +37,7 @@ myISort (x:xs) = myIns x (myISort xs)
 
 -- This just iterate over [i..j] and give that value to k which filter that index value from the list xs example [1,2,3,4] -> [3,2,-4,3]
 subList :: Int -> Int -> [Int] -> [Int]
+-- https://discourse.haskell.org/t/list-comprehension-on-indices/7465
 --  indexes lists "!!"
 subList i j xs = [xs !! k | k <- [i..j]]
 
@@ -48,6 +50,7 @@ subList i j xs = [xs !! k | k <- [i..j]]
 -- Last index n -> n (so last sublist)
 
 -- Example from test : [(0,0,[3]),(0,1,[3,2]),(0,2,[3,2,-4]),(0,3,[3,2,-4,3]),(1,1,[2]),(1,2,[2,-4]),(1,3,[2,-4,3]),(2,2,[-4]),(2,3,[-4,3]),(3,3,[3])]
+-- https://stackoverflow.com/questions/50451401/using-list-comprehension-with-two-variables-in-haskell
 allSubList :: [Int] -> [(Int,Int,[Int])]
 allSubList xs = [(i, j, subList i j xs) | i <- [0 .. length xs - 1],j <- [i .. length xs - 1]]
 
