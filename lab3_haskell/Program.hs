@@ -3,9 +3,14 @@ import Parser hiding (T)
 import qualified Statement
 import qualified Dictionary
 import Prelude hiding (return, fail)
-newtype T = Program () -- to be defined
+newtype T = Program [Statement.T] -- to be defined
 instance Parse T where
-  parse = error "Program.parse not implemented"
-  toString = error "Program.toString not implemented"
-             
-exec = error "Program.exec not implemented"
+  parse = iter Statement.parse >-> Program
+  toString = (\x -> createString x)
+
+exec :: T -> [Integer] -> [Integer]        
+exec (Program stmts) input = Statement.exec stmts Dictionary.empty input
+
+
+createString :: T -> String
+createString (Program stmts) = concat [Statement.toString s | s <- stmts]

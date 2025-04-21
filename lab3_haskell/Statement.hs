@@ -24,7 +24,8 @@ data Statement =
     Begin [Statement] | 
     While Expr.T Statement |
     Read String | 
-    Write Expr.T
+    Write Expr.T |
+    Repeat Statement Expr.T
     deriving Show
 
 
@@ -47,7 +48,7 @@ read' = accept "read" -# word #- require ";" >-> buildRead
 buildRead w = Read w 
 
 while = accept "while" -# Expr.parse #- require "do" # parse >-> buildWhile
-buildWhile (e,p) = While e p
+buildWhile (con,p) = While con p
 
 begin = accept "begin" -# iter parse #- require "end" >-> buildBegin
 buildBegin s = Begin s
@@ -61,16 +62,56 @@ buildSkip _ = Skip
 write = accept "write" -# Expr.parse #- require ";" >-> buildWrite
 buildWrite e = Write e
 
+repeat' = accept "repeat" -# parse #- require "until" # Expr.parse #- require ";" >-> buildRepeat
+buildRepeat (s, e) = Repeat s e
+
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
+exec [] _ _ = []
+
+
 exec (If cond thenStmts elseStmts: stmts) dict input = 
     if (Expr.value cond dict)>0 
     then exec (thenStmts: stmts) dict input
     else exec (elseStmts: stmts) dict input
 
-instance Parse Statement where
-  parse = assignment ! if' ! skip ! while ! read' ! write ! begin
-  toString = error "Statement.toString not implemented"
+exec (Assignment v e: stmts) dict input =
+    exec stmts (Dictionary.insert (v, Expr.value e dict) dict) input
 
+exec (Read w : stmts) dict input = 
+    exec stmts (Dictionary.insert(w, head input) dict) (tail input)
+
+exec (While con p: stmts) dict input=
+    if(Expr.value con dict) /= 0
+        then exec (p:While con p: stmts) dict input
+        else exec stmts dict input
+
+exec (Begin s: stmts) dict input = 
+    exec (s++stmts) dict input
+
+exec (Skip: stmts) dict input =
+    exec stmts dict input
+
+exec (Write e: stmts) dict input =
+    Expr.value e dict:exec stmts dict input
+
+exec (Repeat s e: stmts) dict input =
+    exec (s:If e Skip (Repeat s e):stmts) dict input
+
+
+
+instance Parse Statement where
+  parse = assignment ! if' ! skip ! while ! read' ! write ! begin ! repeat'
+  toString = (\x -> createString x)
+
+createString :: T -> String
+createString(Assignment v e) = v ++ " := " ++ toString e ++ ";\n"
+createString(Read w) = "read " ++ w ++ ";\n"
+createString(While con p) = "while " ++ toString con ++ " do\n" ++ toString p
+createString(Begin s) = "begin\n" ++ concat [toString oneS|oneS <- s] ++ "end\n"
+createString(Skip) = "skip;\n"
+createString(Write e) = "write " ++ toString e ++ ";\n"
+createString(If i t e) = "if " ++ toString i ++ " then\n" ++ toString t ++ "else\n" ++ toString e
+createString(Repeat s e) = "repeat\n" ++ toString s ++ "until " ++ toString e ++";\n" 
 
 
 

@@ -56,7 +56,6 @@ word = token (letter # iter letter >-> cons)
 chars :: Int -> Parser String
 chars amount = iterate' char amount 
 
-
 accept :: String -> Parser String
 accept w = (token (chars (length w))) ? (==w)
 
