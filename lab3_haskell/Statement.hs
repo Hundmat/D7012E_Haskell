@@ -94,8 +94,17 @@ exec (Skip: stmts) dict input =
 exec (Write e: stmts) dict input =
     Expr.value e dict:exec stmts dict input
 
-exec (Repeat s e: stmts) dict input =
-    exec (s:If e Skip (Repeat s e):stmts) dict input
+exec (Repeat s e : stmts) dict input =
+    exec (s : control : stmts) dict input
+  where 
+    control = if (Expr.value e dict) > 0
+              then Skip
+              else Repeat s e
+
+-- exec (Repeat s e: stmts) dict input =
+--     if (Expr.value e dict) > 0
+--     then exec stmts dict input
+--     else exec (s:Repeat s e:stmts) dict input
 
 
 
