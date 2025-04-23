@@ -62,6 +62,8 @@ accept w = (token (chars (length w))) ? (==w)
 require :: String -> Parser String
 require w  = accept w ! err w
 
+
+
 lit :: Char -> Parser Char
 lit c = token char ? (==c)
 

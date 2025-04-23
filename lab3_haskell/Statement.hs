@@ -81,9 +81,10 @@ exec (Read w : stmts) dict input =
     exec stmts (Dictionary.insert(w, head input) dict) (tail input)
 
 exec (While con p: stmts) dict input=
-    if(Expr.value con dict) /= 0
+    if(Expr.value con dict) > 0
         then exec (p:While con p: stmts) dict input
         else exec stmts dict input
+
 
 exec (Begin s: stmts) dict input = 
     exec (s++stmts) dict input
@@ -101,10 +102,13 @@ exec (Repeat s e : stmts) dict input =
               then Skip
               else Repeat s e
 
+
 -- exec (Repeat s e: stmts) dict input =
 --     if (Expr.value e dict) > 0
 --     then exec stmts dict input
 --     else exec (s:Repeat s e:stmts) dict input
+
+
 
 
 
